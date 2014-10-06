@@ -15,12 +15,21 @@ var chalk = require('chalk');
 
 var dir  = argv.hasOwnProperty('dir')  ? argv.dir  : process.cwd();
 var port = argv.hasOwnProperty('port') ? argv.port : 6666;
-var filename = argv.hasOwnProperty('file') ? path.join(dir, argv.file) : path.join(dir, 'upload');
-var outfile = fs.createWriteStream(filename);
 
 var server = net.createServer(function(conn) {
   console.log('Received connection from ' + conn.remoteAddress);
-  conn.pipe(outfile);
+
+  conn.on('data', function(data) {
+    console.log(data.toString());
+  });
+
+});
+
+server.on('error', function(err) {
+  console.log(chalk.red('Server Error'));
+  console.log(err);
+  server.close();
+  process.exit();
 });
 
 server.listen(port, function() { console.log(chalk.green('Started server on port ' + port)); });
