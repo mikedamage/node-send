@@ -4,5 +4,8 @@
   "private": true,
   "author": "Mike Green <mike.is.green@gmail.com>",
   "description": "Send files over TCP. Socket to me.",
-  "dependencies": {}
+  "dependencies": {
+    "chalk": "^0.5.1",
+    "yargs": "^1.3.1"
+  }
 }
