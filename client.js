@@ -7,4 +7,91 @@
 
 'use strict';
 
-var net = require('net');
+var fs          = require('fs');
+var net         = require('net');
+var path        = require('path');
+var argv        = require('yargs').argv;
+var chalk       = require('chalk');
+var isEmpty     = require('lodash.isempty');
+var forEach     = require('lodash.foreach');
+var ProgressBar = require('progress2');
+var spy         = require('through2-spy');
+
+var files;
+var host = argv.host;
+var port = argv.port;
+//var concurrency = argv.concurrency || argv.j || 3;
+
+process.on('INT', function() { process.exit(); });
+
+if (argv.h) {
+  console.log(chalk.bold('NodeSend Client'));
+  console.log('Usage: client.js --host="xxx.xxx.xxx.xxx" --port=6666 [FILE...]');
+  process.exit();
+}
+
+if (!host) {
+  console.log(chalk.red('Please specify a host to connect to!'));
+  process.exit(1);
+}
+
+if (!port) {
+  port = 6666;
+}
+
+if (isEmpty(argv._)) {
+  console.log(chalk.red('Feed me at least 1 file!'));
+  process.exit(3);
+}
+
+files = argv._;
+
+var sendFile = function sendFile(filename) {
+  var stats, bar, file, client, progressSpy;
+  var basename = path.basename(filename);
+  var bytesSent = 0;
+  var progTitle = 'Uploading ' + basename + ' [:bar] :percent';
+  var barWidth = Math.min((process.stdout.columns - progTitle.length), 80);
+  var header = {
+    filename: basename
+  };
+
+  console.log(chalk.cyan('Uploading ' + filename));
+
+  try {
+    stats = fs.statSync(filename);
+  } catch (err) {
+    console.log(chalk.red(chalk.bold('File not found: ')) + filename);
+    return;
+  }
+
+  bar = new ProgressBar(progTitle, {
+    complete: '=',
+    incomplete: '-',
+    width: barWidth,
+    total: stats.size
+  });
+
+  progressSpy = spy(function(chunk) {
+    bytesSent += chunk.length;
+    bar.tick(chunk.length);
+  });
+  
+  client = net.connect({
+    host: host,
+    port: port
+  }, function() {
+    client.write(JSON.stringify(header) + '\n\n');
+    file = fs.createReadStream(filename);
+
+    file.on('open', function() {
+      file.pipe(progressSpy).pipe(client);
+    });
+  });
+
+  client.on('end', function() {
+    console.log(chalk.green('Upload complete!'));
+  });
+};
+
+forEach(files, sendFile);

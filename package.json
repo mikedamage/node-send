@@ -6,6 +6,16 @@
   "description": "Send files over TCP. Socket to me.",
   "dependencies": {
     "chalk": "^0.5.1",
+    "chunk": "0.0.2",
+    "cp": "^0.1.1",
+    "lodash.foreach": "^2.4.1",
+    "lodash.isempty": "^2.4.1",
+    "progress2": "^0.1.1",
+    "q": "^1.0.1",
+    "q-io": "^1.11.5",
+    "temp": "^0.8.1",
+    "through2": "^0.6.2",
+    "through2-spy": "^1.2.0",
     "yargs": "^1.3.1"
   }
 }
