@@ -23,6 +23,9 @@ var port = argv.hasOwnProperty('port') ? argv.port : 6666;
 var server = net.createServer(function(conn) {
   console.log('Received connection from ' + conn.remoteAddress);
 
+  var newlineCount  = 0;
+  var rawHeader     = '';
+  var header        = {};
   var inBody        = false;
   var bytesReceived = 0;
   var tempStream    = temp.createWriteStream();
@@ -32,6 +35,31 @@ var server = net.createServer(function(conn) {
     bytesReceived += chunk.length;
   });
 
+  var extractHeader = through(function _extractHeader(chunk, encoding, callback) {
+    if (!inBody) {
+      for (var i = 0; i < chunk.length; i++) {
+        if (chunk[i] === 0x0a) {
+          newlineCount++;
+
+          if (newlineCount === 2) {
+            inBody          = true;
+            rawHeader       = chunk.slice(0, i - 1);
+            var afterHeader = chunk.slice(i + 1);
+
+            header = JSON.parse(rawHeader.toString());
+            output = path.join(dir, header.filename);
+
+            this.push(afterHeader);
+          }
+        }
+      }
+    } else {
+      this.push(chunk);
+    }
+
+    callback();
+  });
+
   var finish = function _finish() {
     cp(tempStream.path, output, function() {
       console.log(chalk.green('Saved: ') + output);
@@ -39,7 +67,7 @@ var server = net.createServer(function(conn) {
     });
   };
 
-  conn.on('end', finish).pipe(progressSpy).pipe(tempStream);
+  conn.on('end', finish).pipe(progressSpy).pipe(extractHeader).pipe(tempStream);
 });
 
 server.on('error', function(err) {
