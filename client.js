@@ -47,14 +47,11 @@ if (isEmpty(argv._)) {
 files = argv._;
 
 var sendFile = function sendFile(filename) {
-  var stats, bar, file, client, progressSpy;
-  var basename = path.basename(filename);
+  var stats, bar, file, client, progressSpy, header;
+  var basename  = path.basename(filename);
   var bytesSent = 0;
   var progTitle = 'Uploading ' + basename + ' [:bar] :percent';
-  var barWidth = Math.min((process.stdout.columns - progTitle.length), 80);
-  var header = {
-    filename: basename
-  };
+  var barWidth  = Math.min((process.stdout.columns - progTitle.length), 80);
 
   console.log(chalk.cyan('Uploading ' + filename));
 
@@ -64,6 +61,11 @@ var sendFile = function sendFile(filename) {
     console.log(chalk.red(chalk.bold('File not found: ')) + filename);
     return;
   }
+
+  header = {
+    filename: basename,
+    size: stats.size
+  };
 
   bar = new ProgressBar(progTitle, {
     complete: '=',
@@ -90,7 +92,7 @@ var sendFile = function sendFile(filename) {
   });
 
   client.on('end', function() {
-    console.log(chalk.green('Upload complete!'));
+    console.log(chalk.green('\nUpload complete!'));
   });
 };
 

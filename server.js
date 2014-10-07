@@ -15,25 +15,31 @@ var chalk   = require('chalk');
 var through = require('through2');
 var temp    = require('temp').track();
 var cp      = require('cp');
+var spy     = require('through2-spy');
 
 var dir  = argv.hasOwnProperty('dir')  ? argv.dir  : process.cwd();
 var port = argv.hasOwnProperty('port') ? argv.port : 6666;
 
-var bytesReceived = 0;
-
 var server = net.createServer(function(conn) {
   console.log('Received connection from ' + conn.remoteAddress);
 
-  var tempStream = temp.createWriteStream();
-  var output = path.join(dir, 'output');
-  
-  tempStream.on('end', function() {
-    cp(tempStream.path, output, function() {
-      console.log(chalk.green('Saved: ') + output);
-    });
+  var inBody        = false;
+  var bytesReceived = 0;
+  var tempStream    = temp.createWriteStream();
+  var output        = path.join(dir, 'output');
+
+  var progressSpy = spy(function _progressSpy(chunk) {
+    bytesReceived += chunk.length;
   });
 
-  conn.pipe(tempStream);
+  var finish = function _finish() {
+    cp(tempStream.path, output, function() {
+      console.log(chalk.green('Saved: ') + output);
+      console.log(chalk.blue('Size: ') + bytesReceived + ' bytes');
+    });
+  };
+
+  conn.on('end', finish).pipe(progressSpy).pipe(tempStream);
 });
 
 server.on('error', function(err) {
