@@ -4,6 +4,14 @@
   "private": true,
   "author": "Mike Green <mike.is.green@gmail.com>",
   "description": "Send files over TCP. Socket to me.",
+  "bin": {
+    "ns-send": "./bin/ns-send",
+    "ns-receive": "./bin/ns-receive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikedamage/node-send.git"
+  },
   "dependencies": {
     "chalk": "^0.5.1",
     "chunk": "0.0.2",
