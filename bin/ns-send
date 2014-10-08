@@ -15,6 +15,7 @@ var chalk       = require('chalk');
 var isEmpty     = require('lodash.isempty');
 var ProgressBar = require('progress2');
 var spy         = require('through2-spy');
+var humanize    = require('humanize');
 
 var files;
 var host = argv.host;
@@ -46,21 +47,22 @@ if (isEmpty(argv._)) {
 files = argv._;
 
 var sendFiles = function sendFiles() {
-  var stats, bar, file, client, progressSpy, header;
+  var stats, humanSize, bar, file, client, progressSpy, header;
   var filename  = files.pop();
   var basename  = path.basename(filename);
   var bytesSent = 0;
   var progTitle = basename + ' [:bar] :percent';
   var barWidth  = Math.min((process.stdout.columns - progTitle.length), 80);
 
-  console.log(chalk.cyan('\nUploading ' + filename));
-
   try {
-    stats = fs.statSync(filename);
+    stats     = fs.statSync(filename);
+    humanSize = humanize.filesize(stats.size);
   } catch (err) {
     console.log(chalk.red(chalk.bold('File not found: ')) + filename);
     return (files.length ? sendFiles() : null);
   }
+
+  console.log(chalk.cyan('\nUploading ' + filename + ' (' + humanSize + ')'));
 
   header = {
     filename: basename,

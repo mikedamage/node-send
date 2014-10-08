@@ -7,14 +7,15 @@
 
 'use strict';
 
-var net     = require('net');
-var path    = require('path');
-var argv    = require('yargs').argv;
-var chalk   = require('chalk');
-var through = require('through2');
-var temp    = require('temp').track();
-var cp      = require('cp');
-var spy     = require('through2-spy');
+var net      = require('net');
+var path     = require('path');
+var argv     = require('yargs').argv;
+var chalk    = require('chalk');
+var through  = require('through2');
+var temp     = require('temp').track();
+var cp       = require('cp');
+var spy      = require('through2-spy');
+var humanize = require('humanize');
 
 var dir  = argv.hasOwnProperty('dir')  ? argv.dir  : process.cwd();
 var port = argv.hasOwnProperty('port') ? argv.port : 6666;
@@ -62,7 +63,7 @@ var server = net.createServer(function(conn) {
   var finish = function _finish() {
     cp(tempStream.path, output, function() {
       console.log(chalk.green('Saved: ') + output);
-      console.log(chalk.blue('Size: ') + bytesReceived + ' bytes');
+      console.log(chalk.blue('Size: ') + humanize.filesize(bytesReceived - rawHeader.length));
     });
   };
 
