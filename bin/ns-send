@@ -14,8 +14,8 @@ var argv        = require('yargs').argv;
 var chalk       = require('chalk');
 var isEmpty     = require('lodash.isempty');
 var ProgressBar = require('progress2');
-var spy         = require('through2-spy');
 var humanize    = require('humanize');
+var progStream  = require('progress-stream');
 
 var files;
 var host = argv.host;
@@ -47,11 +47,11 @@ if (isEmpty(argv._)) {
 files = argv._;
 
 var sendFiles = function sendFiles() {
-  var stats, humanSize, bar, file, client, progressSpy, header;
+  var stats, humanSize, bar, file, client, header, progMon;
   var filename  = files.pop();
   var basename  = path.basename(filename);
   var bytesSent = 0;
-  var progTitle = basename + ' [:bar] :percent';
+  var progTitle = basename + ' [:bar] :percent (:speed / second)';
   var barWidth  = Math.min((process.stdout.columns - progTitle.length), 80);
 
   try {
@@ -76,9 +76,14 @@ var sendFiles = function sendFiles() {
     total: stats.size
   });
 
-  progressSpy = spy(function(chunk) {
-    bytesSent += chunk.length;
-    bar.tick(chunk.length);
+  progMon = progStream({
+    length: stats.size,
+    time: 100
+  }, function(prog) {
+    bytesSent += prog.delta;
+    bar.tick(prog.delta, {
+      speed: humanize.filesize(prog.speed)
+    });
   });
 
   client = net.connect({
@@ -89,7 +94,7 @@ var sendFiles = function sendFiles() {
     file = fs.createReadStream(filename);
 
     file.on('open', function() {
-      file.pipe(progressSpy).pipe(client);
+      file.pipe(progMon).pipe(client);
     });
 
     file.on('end', function() {
