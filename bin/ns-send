@@ -59,7 +59,7 @@ var sendFiles = function sendFiles() {
     stats = fs.statSync(filename);
   } catch (err) {
     console.log(chalk.red(chalk.bold('File not found: ')) + filename);
-    return;
+    return (files.length ? sendFiles() : null);
   }
 
   header = {
