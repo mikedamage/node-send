@@ -78,7 +78,7 @@ var sendFile = function sendFile(filename) {
     bytesSent += chunk.length;
     bar.tick(chunk.length);
   });
-  
+
   client = net.connect({
     host: host,
     port: port
