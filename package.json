@@ -1,6 +1,6 @@
 {
   "name": "node-send-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "author": "Mike Green <mike.is.green@gmail.com>",
   "description": "Send files over TCP. Socket to me.",

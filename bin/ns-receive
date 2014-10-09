@@ -9,16 +9,32 @@
 
 var net      = require('net');
 var path     = require('path');
-var argv     = require('yargs').argv;
 var chalk    = require('chalk');
 var through  = require('through2');
 var temp     = require('temp').track();
 var cp       = require('cp');
 var spy      = require('through2-spy');
 var humanize = require('humanize');
+var pkg      = require(path.join(__dirname, '..', 'package.json'));
 
-var dir  = argv.hasOwnProperty('dir')  ? argv.dir  : process.cwd();
-var port = argv.hasOwnProperty('port') ? argv.port : 6666;
+var argv = require('yargs')
+  .usage('ns-receive server\n\nUsage: $0 [options]')
+  .help('help').alias('help', 'h')
+  .version(pkg.version, 'version').alias('version', 'v')
+  .options({
+    dir: {
+      alias: 'd',
+      description: 'Directory to store received files',
+      requiresArg: true,
+      default: process.cwd()
+    },
+    port: {
+      alias: 'p',
+      description: 'Port to listen on',
+      requiresArg: true,
+      default: 6666
+    }
+  }).argv;
 
 var server = net.createServer(function(conn) {
   console.log('Received connection from ' + conn.remoteAddress);
@@ -29,7 +45,7 @@ var server = net.createServer(function(conn) {
   var inBody        = false;
   var bytesReceived = 0;
   var tempStream    = temp.createWriteStream();
-  var output        = path.join(dir, 'output');
+  var output        = path.join(argv.dir, 'output');
 
   var progressSpy = spy(function _progressSpy(chunk) {
     bytesReceived += chunk.length;
@@ -47,7 +63,7 @@ var server = net.createServer(function(conn) {
             var afterHeader = chunk.slice(i + 1);
 
             header = JSON.parse(rawHeader.toString());
-            output = path.join(dir, header.filename);
+            output = path.join(argv.dir, header.filename);
 
             this.push(afterHeader);
           }
@@ -77,4 +93,4 @@ server.on('error', function(err) {
   process.exit();
 });
 
-server.listen(port, function() { console.log(chalk.green('Started server on port ' + port)); });
+server.listen(argv.port, function() { console.log(chalk.green('Started server on port ' + argv.port)); });

@@ -10,12 +10,31 @@
 var fs          = require('fs');
 var net         = require('net');
 var path        = require('path');
-var argv        = require('yargs').argv;
 var chalk       = require('chalk');
 var isEmpty     = require('lodash.isempty');
 var ProgressBar = require('progress2');
 var humanize    = require('humanize');
 var progStream  = require('progress-stream');
+var pkg         = require(path.join(__dirname, '..', 'package.json'));
+
+var argv = require('yargs')
+  .usage('ns-send client\n\nUsage: $0 --host=HOST [options] [file...]')
+  .help('help').alias('help', 'h')
+  .version(pkg.version, 'version').alias('version', 'v')
+  .options({
+    host: {
+      alias: 'H',
+      description: 'Host IP to connect to',
+      requiresArg: true,
+      required: true
+    },
+    port: {
+      alias: 'p',
+      description: 'Port to connect to',
+      requiresArg: true,
+      default: 6666
+    }
+  }).argv;
 
 var files;
 var host = argv.host;
