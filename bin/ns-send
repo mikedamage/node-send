@@ -39,24 +39,8 @@ var argv = require('yargs')
 var files;
 var host = argv.host;
 var port = argv.port;
-//var concurrency = argv.concurrency || argv.j || 3;
 
 process.on('INT', function() { process.exit(); });
-
-if (argv.h) {
-  console.log(chalk.bold('NodeSend Client'));
-  console.log('Usage: client.js --host="xxx.xxx.xxx.xxx" --port=6666 [FILE...]');
-  process.exit();
-}
-
-if (!host) {
-  console.log(chalk.red('Please specify a host to connect to!'));
-  process.exit(1);
-}
-
-if (!port) {
-  port = 6666;
-}
 
 if (isEmpty(argv._)) {
   console.log(chalk.red('Feed me at least 1 file!'));

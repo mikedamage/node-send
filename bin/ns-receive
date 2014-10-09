@@ -13,7 +13,6 @@ var chalk    = require('chalk');
 var through  = require('through2');
 var temp     = require('temp').track();
 var cp       = require('cp');
-var spy      = require('through2-spy');
 var humanize = require('humanize');
 var pkg      = require(path.join(__dirname, '..', 'package.json'));
 
@@ -47,10 +46,6 @@ var server = net.createServer(function(conn) {
   var tempStream    = temp.createWriteStream();
   var output        = path.join(argv.dir, 'output');
 
-  var progressSpy = spy(function _progressSpy(chunk) {
-    bytesReceived += chunk.length;
-  });
-
   var extractHeader = through(function _extractHeader(chunk, encoding, callback) {
     if (!inBody) {
       for (var i = 0; i < chunk.length; i++) {
@@ -65,11 +60,14 @@ var server = net.createServer(function(conn) {
             header = JSON.parse(rawHeader.toString());
             output = path.join(argv.dir, header.filename);
 
+            bytesReceived += afterHeader.length;
+
             this.push(afterHeader);
           }
         }
       }
     } else {
+      bytesReceived += chunk.length;
       this.push(chunk);
     }
 
@@ -83,7 +81,7 @@ var server = net.createServer(function(conn) {
     });
   };
 
-  conn.on('end', finish).pipe(progressSpy).pipe(extractHeader).pipe(tempStream);
+  conn.on('end', finish).pipe(extractHeader).pipe(tempStream);
 });
 
 server.on('error', function(err) {
