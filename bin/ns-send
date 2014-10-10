@@ -44,7 +44,7 @@ process.on('INT', function() { process.exit(); });
 
 if (isEmpty(argv._)) {
   console.log(chalk.red('Feed me at least 1 file!'));
-  process.exit(3);
+  process.exit(1);
 }
 
 files = argv._;
