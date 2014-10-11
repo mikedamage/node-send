@@ -33,12 +33,19 @@ var argv = require('yargs')
       description: 'Port to connect to',
       requiresArg: true,
       default: 6666
+    },
+    update: {
+      alias: 'u',
+      description: 'Progress update frequency',
+      requiresArg: true,
+      default: 500
     }
   }).argv;
 
 var files;
-var host = argv.host;
-var port = argv.port;
+var host   = argv.host;
+var port   = argv.port;
+var update = argv.update;
 
 process.on('INT', function() { process.exit(); });
 
@@ -81,7 +88,7 @@ var sendFiles = function sendFiles() {
 
   progMon = progStream({
     length: stats.size,
-    time: 100
+    time: update
   }, function(prog) {
     bytesSent += prog.delta;
     bar.tick(prog.delta, {
